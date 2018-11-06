@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import time as TIME
 import datetime
 startdir = '.'
-version = '1.1'
+version = '1.1.1'
 #ts = time.strftime("%Y%m%d%H%M")
 
 def copyFiles ():
@@ -63,7 +63,7 @@ def checkFiles ():
                 
                 for (dirname, dirs, files) in os.walk('.\\..\\Processed Data\\'):
                         errors = [0,0]
-                        
+
                         with open(output,'a') as f:
                                 for filename in files:
                                         if filename.endswith('.xml'):
@@ -76,23 +76,30 @@ def checkFiles ():
                                                                 continue
                                                         else:
                                                                 time = elem.attrib.get('Tm')
-                                                                h=float(elem.attrib.get('HR'))
-                                                                t=float(elem.attrib.get('T1R'))
-                                                                
+                                                                try:
+                                                                        h=float(elem.attrib.get('HR'))
+                                                                except:
+                                                                        h=0.0
+                                                                try:        
+                                                                        t=float(elem.attrib.get('T1R'))
+                                                                except:
+                                                                        t=0.0
+                                                                        
                                                                 if h >= highHumidity or h <= lowHumidity:
-                                                                        f.write('Humidity error on timestamp: ' + time + ' ----- [FROM FILE ' + os.path.abspath(file) +']\n')
+                                                                        f.write('Humidity error (Value = ' + str(h) + ') on timestamp: ' + time + ' ----- [FROM FILE ' + os.path.abspath(file) +']\n')
                                                                         errors[0] += 1
                                                                         if errors[0] >= 1440:
                                                                                 outOfSpec.append('Humidity error: ' + file + '--' + time)
                                                                 else: errors[0] = 0
                                                                 
                                                                 if t >= highTemp or t <= lowTemp:
-                                                                        f.write('Temperature error on timestamp: ' + time + ' ----- [FROM FILE ' + os.path.abspath(file) +']\n')
+                                                                        f.write('Temperature error (Value = ' + str(t) + ') on timestamp: ' + time + ' ----- [FROM FILE ' + os.path.abspath(file) +']\n')
                                                                         errors[1] += 1
                                                                         if errors[1] >= 1440:
                                                                                 outOfSpec.append('Temperature error: ' + file + '--' + time)
                                                                 else: errors[1] = 0
-                
+
+
                 with open(output,'a') as f:             
                         if len(outOfSpec)>=1:
                                         f.write('Out of specification errors were found!\n' + 
@@ -120,7 +127,7 @@ def main():
         count = 'Total files scanned: ' + str(count)
         updates = 'File structures updated: ' + str(updates)
         oos = 'Number of out of spec periods: ' + str(len(errors[0]))
-        
+
         with open(errors[1],'a') as f:          
                 f.write(count + '\n')
                 f.write(updates + '\n')
@@ -132,7 +139,6 @@ def main():
 
         if len(errors[0])>0: 
                 print('Out of specification errors were found! \nCheck ' + errors[1])
-
         raw_input('Press enter to exit')
         
 main()
